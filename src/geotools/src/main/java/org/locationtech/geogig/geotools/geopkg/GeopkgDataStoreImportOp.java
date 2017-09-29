@@ -20,9 +20,6 @@ import org.locationtech.geogig.geotools.plumbing.DataStoreImportOp;
 import org.locationtech.geogig.geotools.plumbing.ForwardingFeatureIteratorProvider;
 import org.locationtech.geogig.geotools.plumbing.ImportOp;
 import org.locationtech.geogig.model.RevCommit;
-import org.locationtech.geogig.porcelain.AddOp;
-import org.locationtech.geogig.porcelain.CommitOp;
-import org.locationtech.geogig.repository.WorkingTree;
 
 import com.google.common.base.Throwables;
 
@@ -52,7 +49,7 @@ public class GeopkgDataStoreImportOp extends DataStoreImportOp<RevCommit> {
          */
         try {
             // import data into the repository
-            final ImportOp importOp = getImportOp(dataStore);
+            final ImportOp importOp = getImportOp();
             final GeoPackage geopkg = new GeoPackage(geopackage);
             try {
                 final DataSource dataSource = geopkg.getDataSource();
@@ -79,26 +76,6 @@ public class GeopkgDataStoreImportOp extends DataStoreImportOp<RevCommit> {
         }
 
         return revCommit;
-    }
-
-    private WorkingTree callAdd() {
-        final AddOp addOp = context.command(AddOp.class);
-        addOp.setProgressListener(getProgressListener());
-        return addOp.call();
-    }
-
-    private RevCommit callCommit() {
-        final CommitOp commitOp = context.command(CommitOp.class).setAll(true)
-                .setAuthor(authorName, authorEmail).setMessage(commitMessage);
-        commitOp.setProgressListener(getProgressListener());
-        return commitOp.call();
-    }
-
-    private ImportOp getImportOp(DataStore dataStore) {
-        final ImportOp importOp = context.command(ImportOp.class);
-        return importOp.setDataStore(dataStore).setTable(table).setAll(all).setOverwrite(!add)
-                .setAdaptToDefaultFeatureType(!forceFeatureType).setAlter(alter)
-                .setDestinationPath(dest).setFidAttribute(fidAttribute);
     }
 
     private ForwardingFeatureIteratorProvider getFeatureIteratorTransformer(

@@ -12,12 +12,14 @@ package org.locationtech.geogig.geotools.plumbing;
 import org.eclipse.jdt.annotation.Nullable;
 import org.geotools.data.DataStore;
 import org.locationtech.geogig.model.Ref;
+import org.locationtech.geogig.model.RevCommit;
 import org.locationtech.geogig.model.SymRef;
 import org.locationtech.geogig.plumbing.RefParse;
 import org.locationtech.geogig.porcelain.AddOp;
 import org.locationtech.geogig.porcelain.CheckoutOp;
 import org.locationtech.geogig.porcelain.CommitOp;
 import org.locationtech.geogig.repository.AbstractGeoGigOp;
+import org.locationtech.geogig.repository.WorkingTree;
 import org.opengis.feature.Feature;
 
 import com.google.common.base.Optional;
@@ -344,4 +346,25 @@ public abstract class DataStoreImportOp<T> extends AbstractGeoGigOp<T> {
     }
 
     protected abstract T callInternal();
+
+
+    protected WorkingTree callAdd() {
+        final AddOp addOp = context.command(AddOp.class);
+        addOp.setProgressListener(getProgressListener());
+        return addOp.call();
+    }
+
+    protected RevCommit callCommit() {
+        final CommitOp commitOp = context.command(CommitOp.class).setAll(true)
+                .setAuthor(authorName, authorEmail).setMessage(commitMessage);
+        commitOp.setProgressListener(getProgressListener());
+        return commitOp.call();
+    }
+
+    protected ImportOp getImportOp() {
+        final ImportOp importOp = context.command(ImportOp.class);
+        return importOp.setDataStore(dataStoreSupplier.get()).setTable(table).setAll(all)
+                .setOverwrite(!add).setAdaptToDefaultFeatureType(!forceFeatureType).setAlter(alter)
+                .setDestinationPath(dest).setFidAttribute(fidAttribute);
+    }
 }
